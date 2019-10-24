@@ -3,3 +3,9 @@ extends layout
 block content
   h1= title
   p Welcome to #{title}
+  button(type="submit", form="getIplInfo") Get IPL Info
+  form(id="getIplInfo",action="/iplinfo", method="GET")
+  if iplinfo
+    div 
+      p Output:
+      span #{iplinfo}

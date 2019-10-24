@@ -109,7 +109,7 @@ npm start
 And go to http://localhost:3000/ in your web browser to access it.
 You should be able to see something like this:
 
-![](tutorial_assets/expressjs_basic.app.jpg)  
+![](tutorial_assets/expressjs_basic_app.jpg)  
 
 Neat, huh?
 
@@ -123,8 +123,84 @@ As an use-case, I will try to keep it simple. Let's say I want to check the IPL 
 
 In order to get this information, you need to connect to your [3270 terminal emulator](https://www.google.com/search?q=3270+emulator&rlz=1C1GCEA_enUS869US869&sxsrf=ACYBGNRHic-f5qJm8pfhTrI6n8DbhmY3gw:1570813385740&source=lnms&tbm=isch&sa=X&ved=0ahUKEwjC8PXu15TlAhXgRBUIHVO8DFYQ_AUIEigB&biw=1536&bih=722) of choice, log in with your mainframe credentials, navigate through the [ISPF panels](https://www.google.com/search?rlz=1C1GCEA_enUS869US869&biw=1536&bih=722&tbm=isch&sxsrf=ACYBGNTF7c8Axlgi18rufk-MY0redjM21A%3A1570813388017&sa=1&ei=zLWgXZ9N64KFsg-y9ozYDA&q=ISPF&oq=ISPF&gs_l=img.3..0l8j0i24l2.76269.76664..77833...0.0..0.99.319.4......0....1..gws-wiz-img.......35i39j0i67.Mr4lFrIKl4Y&ved=0ahUKEwif44Dw15TlAhVrQUEAHTI7A8sQ4dUDCAc&uact=5) and go to the system console, then issue the command `/DISPLAY IPLINFO`. Pretty lengthy activity, right?
 
-How about we simplify this task, so that the user needs only to press a button and get this information.
+How about we simplify this task, so that the user needs only to press a button and get this information.  
 
+### 1. Add a button to press to request the IPL information
+
+- the [index.pug](/views/index.pug) page is the one which is displayed by default. The landing page, if you will. 
+- We do here the following:
+    - add a button element
+        - it has to be of `type=submit`, so it will trigger the form action
+        - we tie it to the form by specfying the proper id with `form="getIplInfo"`
+    - add a form element
+        - the form has an `id="getIplInfo"` so that the button can call it
+        - the `action="/iplinfo"` will be triggered when the button is clicked
+        - the `method="GET"` is the HTTP method used to perform the action
+
+    ```
+    extends layout
+
+    block content
+    h1= title
+    p Welcome to #{title}
+
+    button(type="submit", form="getIplInfo") Get IPL Info
+
+    form(id="getIplInfo",action="/iplinfo", method="GET")
+
+    ```
+
+- you should end up with a button like this on your main page:
+
+![](tutorial_assets/create_button.jpg) 
+
+- if you click it, you should get a 404 error, because the application is looking for `http://localhost:3000/iplinfo?` which is not yet defined. Let's fix that.
+
+### 2. Add the routing
+
+- when the button is clicked, the form action is performed, and the application is trying to perform the `GET` request on that specific page (`/iplinfo`). This behavior is defined in [index.js](/routes/index.js).
+
+    - we define a new `get()` method for the router for that specific URL
+    - inside we render the index page again and pass our `iplinfo` along with other data
+    > Note that for now we use mocked IPL data, and we will come back to it later in the tutorial
+    ```
+    var express = require('express');
+    var router = express.Router();
+
+    /* GET home page. */
+    router.get('/', function(req, res, next) {
+    res.render('index', { title: 'Express' });
+    });
+
+    router.get('/iplinfo', function(req, res, next) {
+    let iplinfo = "placeholder value"    // function that returns IPL INFO will be called here
+    res.render('index', { title: 'Express' , iplinfo});
+    })
+
+    module.exports = router;
+    ```
+
+    - in order to conditionally display the additional data, we have to edit again [index.js](/routes/index.js)
+    - PUG template engine has conditional statements built it, so we can safely display additional content based on the existence of a variable
+    - in our case, if we pass `iplinfo` when rendering the `index` page, then the Output paragraph will be rendered as well.
+
+    ```
+    extends layout
+
+    block content
+    h1= title
+    p Welcome to #{title}
+    button(type="submit", form="getIplInfo") Get IPL Info
+    form(id="getIplInfo",action="/iplinfo", method="GET")
+    if iplinfo
+        div 
+        p Output:
+        span #{iplinfo}
+    ```
+
+- now, when we click the button, we should see our mocked data.
+
+![](tutorial_assets/button_with_mocked_data.jpg)
 
 ---
 # Extras:
