@@ -324,7 +324,7 @@ block content
 
 Landing page:
 
-![](tutorial_assets/final_output_1.jpg)
+![](tutorial_assets/final_output_1.JPG)
 
 When button is clicked:
 
