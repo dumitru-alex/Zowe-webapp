@@ -125,7 +125,7 @@ In order to get this information, you need to connect to your [3270 terminal emu
 
 How about we simplify this task, so that the user needs only to press a button and get this information.  
 
-### 1. Add a button to press to request the IPL information
+### 1. Add a button to request the IPL information
 
 - the [index.pug](/views/index.pug) page is the one which is displayed by default. The landing page, if you will. 
 - We do here the following:
@@ -325,3 +325,17 @@ block content
 
 There are many hosting services for your web applications, but I've found Heroku to be one of the simplest and cheapest (even free) ways to do that.
 
+1. Go to https://www.heroku.com/ and Sign Up (it's free).
+2. After you log in, choose to create a new application
+    - give it a name
+    - select a region
+    - then click `Create App`
+3. In the `Deploy` page, choose to deploy from GitHub
+4. You will then have to select the repository from your GitHub account, that you want to deploy to Heroku
+    > HINT: if you click the `Search` button without typing in any repo-name, it will list all of your repositories.
+    - when you found your repo, click `Connect`
+5. Select which branch you want to deploy (it defaults to `master`) and click `Deploy Branch`.
+6. You will be prompted when the deploy is done, and you will be able to see the green status at the end. Click `View` button to go to your app.
+
+### Congratulations! 
+### Now you have your very own Mainframe Web Application online.
