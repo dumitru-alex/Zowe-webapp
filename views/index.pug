@@ -2,10 +2,12 @@ extends layout
 
 block content
   h1= title
-  p Welcome to #{title}
+  p Welcome to My First Mainframe Web Application
   button(type="submit", form="getIplInfo") Get IPL Info
   form(id="getIplInfo",action="/iplinfo", method="GET")
-  if iplinfo
+  if output
     div 
       p Output:
-      span #{iplinfo}
+      for line in output
+        span #{line}
+        br

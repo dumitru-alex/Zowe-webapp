@@ -174,7 +174,7 @@ How about we simplify this task, so that the user needs only to press a button a
 
     router.get('/iplinfo', function(req, res, next) {
     let iplinfo = "placeholder value"    // function that returns IPL INFO will be called here
-    res.render('index', { title: 'Express' , iplinfo});
+    res.render('index', { title: 'Express' , output: iplinfo});
     })
 
     module.exports = router;
@@ -192,16 +192,133 @@ How about we simplify this task, so that the user needs only to press a button a
     p Welcome to #{title}
     button(type="submit", form="getIplInfo") Get IPL Info
     form(id="getIplInfo",action="/iplinfo", method="GET")
-    if iplinfo
+    if output
         div 
         p Output:
-        span #{iplinfo}
+        span #{output}
     ```
 
 - now, when we click the button, we should see our mocked data.
 
 ![](tutorial_assets/button_with_mocked_data.jpg)
 
+### 3. Implement access to mainframe
+
+- to be able to access the mainframe, we want to use Zowe's CLI node APIs
+- in order to do that, we need to first install it:
+```
+npm install @zowe/cli --save
+```
+- this command will install it under `node_modules` folder in our application, and make sure that `package.json` is updated with `@zowe/cli` added as a dependency.
+
+> Make sure you add `node_modules` folder in your `.gitingore`! You don't need that in your git repository.
+
+- now that we have `zowe/cli` installed, let's create a folder named `services` that will store our application servies, and there create new file called `mainframe` where we build our function that will issue the Console command. 
+
+```
+const zowe = require('@zowe/cli');
+
+class Mainframe {
+    constructor(host, port, user, password) {
+        this.profile = {
+            host,
+            port,
+            user,
+            password,
+            rejectUnauthorized: false
+        }
+    }
+
+    async getIplInfo(account) {
+        const session = zowe.ZosmfSession.createBasicZosmfSessionFromArguments(this.profile);
+        const command = `D IPLINFO`;
+        const out = await zowe.IssueCommand.issueAndCollect(session, {command}, {});
+        const commandResponse = out.commandResponse.split('\n');
+        return commandResponse;
+    }
+}
+
+module.exports = Mainframe;
+```
+- we've built a `Mainframe` object that takes several parameters when instantiating. Those are used to create the session needed to connect to z/OSMF (mainframe).
+    - host: z/OSMF's hostname
+    - port: z/OSMF's port
+    - user: your mainframe username
+    - password: your mainframe password
+    - rejectUnauthorized: this value disables certificate validation. Since we don't use a certificate, we hard code it to `false`
+- then we have a method that takes one argument, `account`, needed to run the TSO command. There are more parameters for the TSO command, but the rest have some default values, which we will take them as they are for now.
+    - account: the account number that is issued to you when your mainframe account is created
+- inside this method we create a `session` based on the connection details passed before
+- we hard code the command to display IPL information
+- we call Zowe's API to issue the TSO command, passing the needed parameters
+- and finally, we parse the output and return it.
+
+Let's do a quick restructure of our application.
+
+- we add a `controllers` folder, to hold all of our actions for the front-end. The controllers will call the services, and in turn, the router in `index.js` will call the controllers.
+- here we create an `mfController.js` with the following content:
+```
+const Mainframe = require ('../services/mainframe')
+
+const host = "your_zosmf_hostname";
+const port = your_zosmf_port;
+const user = "your_zos_username";
+const password = "your_zos_password";
+
+const mainframe = new Mainframe(host, port, user, password);
+
+const account = 'your_zos_account_number';
+
+exports.getIplInfo = function(req, res, next) {
+    const iplinfo = mainframe.getIplInfo(account);
+    iplinfo.then(function(result) {
+        res.render('index', { title: 'Express' , output: result});
+    }, function(err) {
+        console.log(err);
+    });
+}
+```
+- as you can see, we require our mainframe service file, and instantiate the Mainframe object we defined there
+- then we create the `getIplInfo` function that is similar to what we had in the `index.js` file, and export it
+
+Now we can go to our `index.js` file, require this specific controller, and use this function there.
+
+```
+var express = require('express');
+var router = express.Router();
+var mfController = require('../controllers/mfController');
+
+/* GET home page. */
+router.get('/', function(req, res, next) {
+  res.render('index', { title: 'z/OS IPL INFO' });
+});
+
+router.get('/iplinfo', mfController.getIplInfo)
+
+module.exports = router;
+```
+- now, our `index.js` looks cleaner.
+- finally, since we get back a list of strings, let's add a loop to our `index.pug` file, to improve the output display.
+```
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+  button(type="submit", form="getIplInfo") Get IPL Info
+  form(id="getIplInfo",action="/iplinfo", method="GET")
+  if output
+    div 
+      p Output:
+      for line in output
+        span #{line}
+        br
+```
+
+### 4. Personal touches
+
+- changed the title in `index.js` and `mfController.js` from *Express* to *z/OS IPL INFO*
+- in `index.pug` changed the welcome message
 ---
 # Extras:
 ## Hosting your web application
