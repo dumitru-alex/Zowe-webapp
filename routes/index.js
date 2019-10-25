@@ -1,15 +1,12 @@
 var express = require('express');
 var router = express.Router();
+var mfController = require('../controllers/mfController');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'z/OS IPL INFO' });
 });
 
-router.get('/iplinfo', function(req, res, next) {
-  // function to return IPL INFO will be called here
-  let iplinfo = "placeholder value"
-  res.render('index', { title: 'Express' , iplinfo});
-})
+router.get('/iplinfo', mfController.getIplInfo)
 
 module.exports = router;
