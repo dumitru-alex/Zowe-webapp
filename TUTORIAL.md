@@ -319,6 +319,16 @@ block content
 
 - changed the title in `index.js` and `mfController.js` from *Express* to *z/OS IPL INFO*
 - in `index.pug` changed the welcome message
+
+### 5. Final output
+
+Landing page:
+
+![](tutorial_assets/final_output_1.jpg)
+
+When button is clicked:
+
+![](tutorial_assets/final_output_222.png)
 ---
 # Extras:
 ## Hosting your web application
